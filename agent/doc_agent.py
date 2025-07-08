@@ -211,6 +211,19 @@ class DocumentRAGAgent:
 
     def _parse_pdf_with_upstage(self, input_file: str, batch_size: int) -> str:
         """Upstage API를 사용하여 단일 PDF 파일을 HTML로 파싱합니다."""
+        if not self.upstage_api_key:
+            print(f"\n⚠️ Upstage API 키가 없어 PyMuPDF로 대체 파싱을 진행합니다: {os.path.basename(input_file)}")
+            try:
+                doc = fitz.open(input_file)
+                full_text = ""
+                for page in doc:
+                    full_text += page.get_text()
+                doc.close()
+                print(f"✅ PyMuPDF 파싱 완료 - 총 {len(full_text)} 문자")
+                return full_text
+            except Exception as e:
+                print(f"❌ PyMuPDF 파싱 중 오류 발생: {e}")
+                return ""
         print(f"\n--- PDF 처리 시작: {os.path.basename(input_file)} ---")
         temp_dir = Path(os.path.dirname(input_file)) / "temp_split"
         temp_dir.mkdir(exist_ok=True)
